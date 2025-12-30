@@ -8,3 +8,7 @@ runConfig:
 env:
   - variable: ADMIN_PASSWORD
     secret: ADMIN_PASSWORD
+  - variable: STRIPE_SECRET_KEY
+    secret: STRIPE_SECRET_KEY
+  - variable: NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+    value: pk_test_your_publishable_key_here
