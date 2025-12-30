@@ -1,0 +1,10 @@
+runConfig:
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+  minInstances: 0
+  maxInstances: 2
+
+env:
+  - variable: ADMIN_PASSWORD
+    secret: ADMIN_PASSWORD
