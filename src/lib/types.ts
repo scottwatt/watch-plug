@@ -5,6 +5,7 @@ export interface Watch {
   price: number;
   description: string;
   imageUrl: string;
+  imageUrls: string[];
   createdAt: Date;
   sold: boolean;
 }
