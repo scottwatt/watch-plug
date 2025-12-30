@@ -8,4 +8,6 @@ export interface Watch {
   imageUrls: string[];
   createdAt: Date;
   sold: boolean;
+  featured: boolean;
+  newArrival: boolean;
 }

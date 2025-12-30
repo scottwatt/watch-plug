@@ -161,9 +161,23 @@ export default function WatchDetail() {
 
           {/* Watch Details */}
           <div className="flex flex-col justify-center">
-            <span className="text-amber-500 text-sm font-medium tracking-widest mb-2">
-              {watch.sold ? 'SOLD' : 'AVAILABLE NOW'}
-            </span>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {watch.featured && (
+                <span className="flex items-center gap-1 bg-amber-500 text-black text-xs font-bold px-3 py-1 rounded-full">
+                  ⭐ Featured
+                </span>
+              )}
+              {watch.newArrival && (
+                <span className="flex items-center gap-1 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                  ✨ New Arrival
+                </span>
+              )}
+              <span className={`text-xs font-medium tracking-widest px-3 py-1 rounded-full ${
+                watch.sold ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-500'
+              }`}>
+                {watch.sold ? 'SOLD' : 'AVAILABLE'}
+              </span>
+            </div>
             <p className="text-zinc-500 mb-1">{watch.brand}</p>
             <h1 className="text-3xl font-bold mb-4">{watch.name}</h1>
             <p className="text-zinc-400 mb-6 leading-relaxed">{watch.description}</p>
@@ -173,7 +187,7 @@ export default function WatchDetail() {
 
             {!watch.sold && (
               <Link
-                href="https://instagram.com/watchplug1"
+                href="https://instagram.com/watch_plug_1"
                 target="_blank"
                 className="bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold py-4 px-8 rounded-xl hover:from-amber-400 hover:to-amber-500 transition-all flex items-center justify-center gap-3"
               >
@@ -182,7 +196,7 @@ export default function WatchDetail() {
               </Link>
             )}
             <p className="text-zinc-500 text-sm mt-4 text-center">
-              DM @watchplug1 for availability and details
+              DM @watch_plug_1 for availability and details
             </p>
           </div>
         </div>
