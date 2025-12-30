@@ -1,10 +1,10 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { collection, addDoc, updateDoc, doc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { Watch } from '@/lib/types';
-import { Upload, Loader2 } from 'lucide-react';
+import { Upload, Loader2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface WatchFormProps {
@@ -15,22 +15,65 @@ interface WatchFormProps {
 
 export default function WatchForm({ editWatch, onSuccess, onCancel }: WatchFormProps) {
   const [loading, setLoading] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string>(editWatch?.imageUrl || '');
+  const [uploading, setUploading] = useState(false);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [form, setForm] = useState({
-    name: editWatch?.name || '',
-    brand: editWatch?.brand || '',
-    price: editWatch?.price?.toString() || '',
-    description: editWatch?.description || '',
-    sold: editWatch?.sold || false,
+    name: '',
+    brand: '',
+    price: '',
+    description: '',
+    sold: false,
   });
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      setPreview(URL.createObjectURL(file));
+  // Update form when editWatch changes (fixes edit button)
+  useEffect(() => {
+    if (editWatch) {
+      setForm({
+        name: editWatch.name || '',
+        brand: editWatch.brand || '',
+        price: editWatch.price?.toString() || '',
+        description: editWatch.description || '',
+        sold: editWatch.sold || false,
+      });
+      // Support both old single imageUrl and new imageUrls array
+      const urls = editWatch.imageUrls?.length 
+        ? editWatch.imageUrls 
+        : editWatch.imageUrl 
+          ? [editWatch.imageUrl] 
+          : [];
+      setImageUrls(urls);
+    } else {
+      // Reset form when not editing
+      setForm({ name: '', brand: '', price: '', description: '', sold: false });
+      setImageUrls([]);
     }
+  }, [editWatch]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const imageRef = ref(storage, `watches/${Date.now()}-${file.name}`);
+        await uploadBytes(imageRef, file);
+        return getDownloadURL(imageRef);
+      });
+
+      const newUrls = await Promise.all(uploadPromises);
+      setImageUrls(prev => [...prev, ...newUrls]);
+      toast.success(`${files.length} image(s) uploaded!`);
+    } catch (err) {
+      console.error(err);
+      toast.error('Image upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImageUrls(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,20 +85,13 @@ export default function WatchForm({ editWatch, onSuccess, onCancel }: WatchFormP
 
     setLoading(true);
     try {
-      let imageUrl = editWatch?.imageUrl || '';
-
-      if (imageFile) {
-        const imageRef = ref(storage, `watches/${Date.now()}-${imageFile.name}`);
-        await uploadBytes(imageRef, imageFile);
-        imageUrl = await getDownloadURL(imageRef);
-      }
-
       const watchData = {
         name: form.name,
         brand: form.brand,
         price: parseFloat(form.price),
         description: form.description,
-        imageUrl,
+        imageUrl: imageUrls[0] || '',
+        imageUrls: imageUrls,
         sold: form.sold,
         createdAt: editWatch?.createdAt || new Date(),
       };
@@ -86,20 +122,53 @@ export default function WatchForm({ editWatch, onSuccess, onCancel }: WatchFormP
 
       {/* Image Upload */}
       <div className="mb-6">
-        <label className="block mb-2 text-sm text-zinc-400">Watch Image</label>
-        <div className="flex items-center gap-4">
-          {preview ? (
-            <img src={preview} alt="Preview" className="w-24 h-24 rounded-lg object-cover" />
-          ) : (
-            <div className="w-24 h-24 rounded-lg bg-zinc-800 flex items-center justify-center">
-              <Upload className="text-zinc-600" />
+        <label className="block mb-2 text-sm text-zinc-400">Watch Images</label>
+        
+        {/* Image Preview Grid */}
+        <div className="flex flex-wrap gap-3 mb-4">
+          {imageUrls.map((url, index) => (
+            <div key={index} className="relative group">
+              <img 
+                src={url} 
+                alt={`Watch ${index + 1}`} 
+                className="w-24 h-24 rounded-lg object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => removeImage(index)}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
+              >
+                <X size={14} />
+              </button>
+              {index === 0 && (
+                <span className="absolute bottom-1 left-1 bg-amber-500 text-black text-xs px-1.5 py-0.5 rounded">
+                  Main
+                </span>
+              )}
             </div>
-          )}
-          <label className="cursor-pointer bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-lg transition">
-            <span className="text-sm">Choose Image</span>
-            <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+          ))}
+          
+          {/* Upload Button */}
+          <label className="w-24 h-24 rounded-lg bg-zinc-800 flex flex-col items-center justify-center cursor-pointer hover:bg-zinc-700 transition border-2 border-dashed border-zinc-600 hover:border-amber-500">
+            {uploading ? (
+              <Loader2 className="animate-spin text-amber-500" size={24} />
+            ) : (
+              <>
+                <Upload className="text-zinc-500 mb-1" size={20} />
+                <span className="text-xs text-zinc-500">Add</span>
+              </>
+            )}
+            <input 
+              type="file" 
+              accept="image/*" 
+              multiple
+              onChange={handleImageUpload} 
+              className="hidden" 
+              disabled={uploading}
+            />
           </label>
         </div>
+        <p className="text-xs text-zinc-500">First image will be the main photo. You can add multiple images.</p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-4 mb-4">
@@ -147,7 +216,7 @@ export default function WatchForm({ editWatch, onSuccess, onCancel }: WatchFormP
       <div className="flex gap-3">
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || uploading}
           className="bg-amber-500 text-black font-bold py-3 px-6 rounded-xl hover:bg-amber-400 transition disabled:opacity-50 flex items-center gap-2"
         >
           {loading && <Loader2 className="animate-spin" size={18} />}
