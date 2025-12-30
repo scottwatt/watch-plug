@@ -23,9 +23,10 @@ export default function WatchForm({ editWatch, onSuccess, onCancel }: WatchFormP
     price: '',
     description: '',
     sold: false,
+    featured: false,
+    newArrival: false,
   });
 
-  // Update form when editWatch changes (fixes edit button)
   useEffect(() => {
     if (editWatch) {
       setForm({
@@ -34,8 +35,9 @@ export default function WatchForm({ editWatch, onSuccess, onCancel }: WatchFormP
         price: editWatch.price?.toString() || '',
         description: editWatch.description || '',
         sold: editWatch.sold || false,
+        featured: editWatch.featured || false,
+        newArrival: editWatch.newArrival || false,
       });
-      // Support both old single imageUrl and new imageUrls array
       const urls = editWatch.imageUrls?.length 
         ? editWatch.imageUrls 
         : editWatch.imageUrl 
@@ -43,8 +45,7 @@ export default function WatchForm({ editWatch, onSuccess, onCancel }: WatchFormP
           : [];
       setImageUrls(urls);
     } else {
-      // Reset form when not editing
-      setForm({ name: '', brand: '', price: '', description: '', sold: false });
+      setForm({ name: '', brand: '', price: '', description: '', sold: false, featured: false, newArrival: false });
       setImageUrls([]);
     }
   }, [editWatch]);
@@ -93,6 +94,8 @@ export default function WatchForm({ editWatch, onSuccess, onCancel }: WatchFormP
         imageUrl: imageUrls[0] || '',
         imageUrls: imageUrls,
         sold: form.sold,
+        featured: form.featured,
+        newArrival: form.newArrival,
         createdAt: editWatch?.createdAt || new Date(),
       };
 
@@ -120,19 +123,12 @@ export default function WatchForm({ editWatch, onSuccess, onCancel }: WatchFormP
         {editWatch ? 'Edit Watch' : 'Add New Watch'}
       </h2>
 
-      {/* Image Upload */}
       <div className="mb-6">
         <label className="block mb-2 text-sm text-zinc-400">Watch Images</label>
-        
-        {/* Image Preview Grid */}
         <div className="flex flex-wrap gap-3 mb-4">
           {imageUrls.map((url, index) => (
             <div key={index} className="relative group">
-              <img 
-                src={url} 
-                alt={`Watch ${index + 1}`} 
-                className="w-24 h-24 rounded-lg object-cover"
-              />
+              <img src={url} alt={`Watch ${index + 1}`} className="w-24 h-24 rounded-lg object-cover" />
               <button
                 type="button"
                 onClick={() => removeImage(index)}
@@ -141,14 +137,10 @@ export default function WatchForm({ editWatch, onSuccess, onCancel }: WatchFormP
                 <X size={14} />
               </button>
               {index === 0 && (
-                <span className="absolute bottom-1 left-1 bg-amber-500 text-black text-xs px-1.5 py-0.5 rounded">
-                  Main
-                </span>
+                <span className="absolute bottom-1 left-1 bg-amber-500 text-black text-xs px-1.5 py-0.5 rounded">Main</span>
               )}
             </div>
           ))}
-          
-          {/* Upload Button */}
           <label className="w-24 h-24 rounded-lg bg-zinc-800 flex flex-col items-center justify-center cursor-pointer hover:bg-zinc-700 transition border-2 border-dashed border-zinc-600 hover:border-amber-500">
             {uploading ? (
               <Loader2 className="animate-spin text-amber-500" size={24} />
@@ -158,17 +150,10 @@ export default function WatchForm({ editWatch, onSuccess, onCancel }: WatchFormP
                 <span className="text-xs text-zinc-500">Add</span>
               </>
             )}
-            <input 
-              type="file" 
-              accept="image/*" 
-              multiple
-              onChange={handleImageUpload} 
-              className="hidden" 
-              disabled={uploading}
-            />
+            <input type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" disabled={uploading} />
           </label>
         </div>
-        <p className="text-xs text-zinc-500">First image will be the main photo. You can add multiple images.</p>
+        <p className="text-xs text-zinc-500">First image will be the main photo.</p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-4 mb-4">
@@ -203,15 +188,37 @@ export default function WatchForm({ editWatch, onSuccess, onCancel }: WatchFormP
         className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 mb-4 focus:outline-none focus:border-amber-500 transition h-24 resize-none"
       />
 
-      <label className="flex items-center gap-3 mb-6 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={form.sold}
-          onChange={e => setForm({...form, sold: e.target.checked})}
-          className="w-5 h-5 rounded border-zinc-600 bg-zinc-800 checked:bg-amber-500"
-        />
-        <span className="text-zinc-400">Mark as sold</span>
-      </label>
+      <div className="space-y-3 mb-6">
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={form.sold}
+            onChange={e => setForm({...form, sold: e.target.checked})}
+            className="w-5 h-5 rounded"
+          />
+          <span className="text-zinc-400">Mark as sold</span>
+        </label>
+
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={form.featured}
+            onChange={e => setForm({...form, featured: e.target.checked})}
+            className="w-5 h-5 rounded"
+          />
+          <span className="text-zinc-400">⭐ Featured (shows in Featured section)</span>
+        </label>
+
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={form.newArrival}
+            onChange={e => setForm({...form, newArrival: e.target.checked})}
+            className="w-5 h-5 rounded"
+          />
+          <span className="text-zinc-400">✨ New Arrival (shows in New Arrivals section)</span>
+        </label>
+      </div>
 
       <div className="flex gap-3">
         <button

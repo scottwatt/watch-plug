@@ -18,7 +18,6 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [editWatch, setEditWatch] = useState<Watch | null>(null);
 
-  // Check if already logged in
   useEffect(() => {
     const saved = sessionStorage.getItem('admin_auth');
     if (saved === 'true') setIsAuthed(true);
@@ -92,7 +91,6 @@ export default function AdminPage() {
     fetchWatches();
   };
 
-  // Loading state
   if (checking) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -101,7 +99,6 @@ export default function AdminPage() {
     );
   }
 
-  // Login form
   if (!isAuthed) {
     return (
       <div className="min-h-screen bg-black text-white">
@@ -141,7 +138,6 @@ export default function AdminPage() {
     );
   }
 
-  // Admin panel (authenticated)
   return (
     <div className="min-h-screen bg-black text-white">
       <Toaster position="top-right" />
@@ -190,16 +186,20 @@ export default function AdminPage() {
                   <div className="w-16 h-16 rounded-lg bg-zinc-800" />
                 )}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <h4 className="font-semibold truncate">{w.name}</h4>
                     {w.sold && (
-                      <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded">
-                        SOLD
-                      </span>
+                      <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded">SOLD</span>
+                    )}
+                    {w.featured && (
+                      <span className="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded">⭐ Featured</span>
+                    )}
+                    {w.newArrival && (
+                      <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded">✨ New</span>
                     )}
                   </div>
                   <p className="text-zinc-500 text-sm">{w.brand}</p>
-                  <p className="text-amber-400 font-bold">${w.price.toLocaleString()}</p>
+                  <p className="text-amber-400 font-bold">${w.price?.toLocaleString()}</p>
                 </div>
                 <button
                   onClick={() => setEditWatch(w)}
