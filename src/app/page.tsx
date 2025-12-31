@@ -63,7 +63,7 @@ export default function Home() {
               </span>
             </h1>
             <p className="text-xl text-zinc-400 mb-10 leading-relaxed">
-              Curated collection of pre-owned luxury watches. Every piece verified for authenticity. 
+              Curated collection of luxury watches with boxes and papers. Every piece verified for authenticity. 
               Direct inquiries via Instagram for a personal buying experience.
             </p>
             <div className="flex flex-wrap gap-4">
